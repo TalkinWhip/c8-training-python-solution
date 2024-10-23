@@ -37,7 +37,7 @@ def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate:
 async def handle_payment_invocation(job: Job):
     print("Handling job: " + job.type)
     orderId = job.variables.get("orderId")
-    await zeebe_client.publish_message("paymentRequestMessage", orderId, job.variables)
+    await zeebe_client.publish_message("paymentRequestMessage", orderId, dict(job.variables))
     return
 
 @router.task("payment-completion")
