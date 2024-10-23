@@ -4,6 +4,11 @@ from pyzeebe import ZeebeClient, ZeebeWorker, ZeebeTaskRouter, create_camunda_cl
 
 # Setup logging
 # logging.basicConfig(level=logging.Debug)
+grpc_channel = create_camunda_cloud_channel(client_id="2WpZeWNak44qMdq0cz3R6JsTcK2ByFKe",
+                                        client_secret="WP0nearJC3u5BuE5ynVCDn5Kyz~JjzukmyQY9ngXD133vSM0bWqU69EW8nwvMbqM",
+                                        cluster_id="3c19623d-caec-4188-90d5-39a9e8ea746e",
+                                        region="bru-2") 
+zeebe_client = ZeebeClient(grpc_channel)
 
 def get_customer_credit(customer_id: str):
     return customer_id[-2:]
@@ -28,12 +33,27 @@ def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate:
     print("Charging credit card with number " + cardNumber + ", cvc " + cvc + ", expiry date " + expiryDate)
     return
 
+@router.task("payment-invocation")
+async def handle_payment_invocation(job: Job):
+    print("Handling job: " + job.type)
+    orderId = job.variables.get("orderId")
+    await zeebe_client.publish_message("paymentRequestMessage", orderId, job.variables)
+    return
+
+@router.task("payment-completion")
+async def handle_payment_completion(job: Job):
+    print("Handling job: " + job.type)
+    orderId = job.variables.get("orderId")
+    await zeebe_client.publish_message("paymentCompletedMessage", orderId)
+    return
+
 # Create a channel, the worker and include the router with tasks
 async def main():
-    grpc_channel = create_camunda_cloud_channel(client_id="xxx",
-                                                client_secret="xxx",
-                                                cluster_id="xxx",
-                                                region="bru-2")
+    grpc_channel = create_camunda_cloud_channel(client_id="2WpZeWNak44qMdq0cz3R6JsTcK2ByFKe",
+                                            client_secret="WP0nearJC3u5BuE5ynVCDn5Kyz~JjzukmyQY9ngXD133vSM0bWqU69EW8nwvMbqM",
+                                            cluster_id="3c19623d-caec-4188-90d5-39a9e8ea746e",
+                                            region="bru-2")
+    zeebe_client = ZeebeClient(grpc_channel)
     worker = ZeebeWorker(grpc_channel)
     worker.include_router(router)
     await worker.work()
