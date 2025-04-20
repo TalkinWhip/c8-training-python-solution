@@ -8,14 +8,9 @@ from pyzeebe import ZeebeClient, ZeebeWorker, ZeebeTaskRouter, create_camunda_cl
 # Define tasks
 router = ZeebeTaskRouter()
 
-@router.task("credit-deduction")
+@router.task("example-job")
 def deduct_credit(job: Job):
-    print(f"Handling job: {job.type}")
-    return
-
-@router.task("credit-card-charging")
-def credit_card_charge(job: Job):
-    print(f"Handling job: {job.type}")
+    print(f"Hello world")
     return
 
 # Create a channel, the worker and include the router with tasks
