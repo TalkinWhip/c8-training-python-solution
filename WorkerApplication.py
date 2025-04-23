@@ -23,16 +23,17 @@ def handle_credit_deduction(job: Job, customerId: str, orderTotal: float):
     return {'openAmount': open_amount, 'customerCredit': customer_credit}
 
 @router.task("credit-card-charging")
-def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str):
+def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str, amount: float):
     print(f"Handling job: {job.type}")
-    print("Charging credit card with number " + cardNumber + ", cvc " + cvc + ", expiry date " + expiryDate)
+    print(f"Charging credit card with number {cardNumber} and {cvc} cvc and expiry date {expiryDate} and amount {amount}")
     return
 
 # Create a channel, the worker and include the router with tassks
 async def main():
-    grpc_channel = create_camunda_cloud_channel(client_id="xxx",
-                                                client_secret="xxx",
-                                                cluster_id="xxx",
+    print("Workers starting")
+    grpc_channel = create_camunda_cloud_channel(client_id="JH_CnjPO0trH2LWqOwasNWSAaSE7ZXgQ",
+                                                client_secret="5_bS1ygdSZILgLGOSKV9K9q5jRgHjElofDw1lBOu63Zh~nPsA40VNXcFxbG5DqER",
+                                                cluster_id="b6771b71-1be7-4198-a44a-de98c03d86d1",
                                                 region="bru-2")
     worker = ZeebeWorker(grpc_channel)
     worker.include_router(router)
