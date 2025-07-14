@@ -23,9 +23,9 @@ def handle_credit_deduction(job: Job, customerId: str, orderTotal: float):
     return {'openAmount': open_amount, 'customerCredit': customer_credit}
 
 @router.task("credit-card-charging")
-def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str, amount: float):
+def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str, openAmount: float):
     print(f"Handling job: {job.type}")
-    print(f"Charging credit card with number {cardNumber}, cvc {cvc}, expiry date {expiryDate}, and amount {amount}")
+    print(f"Charging credit card with number {cardNumber}, cvc {cvc}, expiry date {expiryDate}, and amount {openAmount}")
     return
 
 # Create a channel, the worker and include the router with tassks
