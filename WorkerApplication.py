@@ -15,9 +15,9 @@ def deduct_credit(customer_id: str, amount: float):
 def check_expiry_date(expiry_date):
     return len(expiry_date) == 5
 
-def charge_credit_card(card_number: str, cvc: str, expiry_date: str):
+def charge_credit_card(card_number: str, cvc: str, expiry_date: str, amount: float):
     if check_expiry_date(expiry_date):
-        print("Charging credit card with number " + card_number + ", cvc " + cvc + ", expiry date " + expiry_date)
+         print(f"Charging credit card with number {card_number}, cvc {cvc}, expiry date {expiry_date}, and amount {amount}")
     else:
         raise Exception("Invalid expiry date: " + expiry_date)
     return
@@ -37,14 +37,14 @@ def handle_credit_deduction(job: Job, customerId: str, orderTotal: float):
     return {'openAmount': open_amount, 'customerCredit': customer_credit}
 
 @router.task("credit-card-charging", credit_card_charging_exception_handler)
-def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str):
+def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str, openAmount: float):
     print(f"Handling job: {job.type}")
-    charge_credit_card(cardNumber, cvc, expiryDate)
+    charge_credit_card(cardNumber, cvc, expiryDate, openAmount)
     return
 
 @router.task("payment-invocation")
 async def handle_payment_invocation(job: Job):
-    print("Handling job: " + job.type)
+    print(f"Handling job: {job.type}")
     orderId = job.variables.get("orderId")
     await zeebe_client.publish_message("paymentRequestMessage", orderId, dict(job.variables))
     return
@@ -58,6 +58,7 @@ async def handle_payment_completion(job: Job):
 
 # Create a channel, the worker and include the router with tasks
 async def main():
+    print("Workers starting")
     global zeebe_client
     grpc_channel = create_camunda_cloud_channel(client_id="xxx",
                                             client_secret="xxx",
