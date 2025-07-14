@@ -23,27 +23,28 @@ def handle_credit_deduction(job: Job, customerId: str, orderTotal: float):
     return {'openAmount': open_amount, 'customerCredit': customer_credit}
 
 @router.task("credit-card-charging")
-def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str):
+def handle_credit_card_charging(job: Job, cardNumber: str, cvc: int, expiryDate: str, openAmount: float):
     print(f"Handling job: {job.type}")
-    print("Charging credit card with number " + cardNumber + ", cvc " + cvc + ", expiry date " + expiryDate)
+    print(f"Charging credit card with number {cardNumber}, cvc {cvc}, expiry date {expiryDate}, and amount {openAmount}")
     return
 
 @router.task("payment-invocation")
 async def handle_payment_invocation(job: Job):
-    print("Handling job: " + job.type)
+    print(f"Handling job: {job.type}")
     orderId = job.variables.get("orderId")
     await zeebe_client.publish_message("paymentRequestMessage", orderId, dict(job.variables))
     return
 
 @router.task("payment-completion")
 async def handle_payment_completion(job: Job):
-    print("Handling job: " + job.type)
+    print(f"Handling job: {job.type}")
     orderId: str = job.variables.get("orderId")
     await zeebe_client.publish_message("paymentCompletedMessage", orderId)
     return
 
 # Create a channel, the worker and include the router with tasks
 async def main():
+    print("Workers starting")
     global zeebe_client
     grpc_channel = create_camunda_cloud_channel(client_id="xxx",
                                                 client_secret="xxx",
